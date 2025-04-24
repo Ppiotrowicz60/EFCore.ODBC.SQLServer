@@ -1,9 +1,5 @@
-﻿// File: EFCore.ODBC.SqlServer/OdbcSqlServerOptionsExtension.cs
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
 using EFCore.ODBC.SQLServer;
 
 namespace EFCore.ODBC.SqlServer;
