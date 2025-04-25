@@ -1,20 +1,22 @@
 ﻿using EFCore.ODBC.SqlServer;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.SqlServer.Infrastructure.Internal;
+using Microsoft.Extensions.Options;
 
 namespace EFCore.ODBC.SQLServer;
 public static class OdbcSqlServerDbContextOptionsBuilderExtensions
 {
     public static DbContextOptionsBuilder UseOdbcSqlServer(
-        this DbContextOptionsBuilder builder, string odbcConnectionString)
+        this DbContextOptionsBuilder optionsBuilder, string odbcConnectionString)
     {
-        var extension = builder.Options.FindExtension<OdbcSqlServerOptionsExtension>()
-            ?? new OdbcSqlServerOptionsExtension();
-
-        extension.ConnectionString = odbcConnectionString;
-
-        ((IDbContextOptionsBuilderInfrastructure)builder).AddOrUpdateExtension(extension);
-        return builder;
+        var extension = (OdbcSqlServerOptionsExtension)GetOrCreateExtension(optionsBuilder).WithConnectionString(odbcConnectionString);
+        ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(extension);
+        return optionsBuilder;
     }
+
+    private static OdbcSqlServerOptionsExtension GetOrCreateExtension(DbContextOptionsBuilder optionsBuilder)
+    => optionsBuilder.Options.FindExtension<OdbcSqlServerOptionsExtension>()
+        ?? new OdbcSqlServerOptionsExtension();
 }
 
