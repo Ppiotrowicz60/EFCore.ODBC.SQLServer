@@ -30,7 +30,7 @@ public class OdbcRelationalCommandBuilder : RelationalCommandBuilder
 
             if (sql.Contains(parameterName))
             {
-                sql = ReplaceFirst(sql, parameterName, "?");
+                sql = sql.Replace(parameterName, "?");
                 orderedParams.Add(parameter);
             }
         }
