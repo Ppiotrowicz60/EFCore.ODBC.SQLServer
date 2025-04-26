@@ -41,14 +41,4 @@ public class OdbcRelationalCommandBuilder : RelationalCommandBuilder
             orderedParams
         );
     }
-
-    private static string ReplaceFirst(string text, string search, string replace)
-    {
-        var pos = text.IndexOf(search, StringComparison.Ordinal);
-        if (pos < 0)
-        {
-            return text;
-        }
-        return text.Substring(0, pos) + replace + text.Substring(pos + search.Length);
-    }
 }
