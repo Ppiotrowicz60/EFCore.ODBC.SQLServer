@@ -18,6 +18,8 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Data.Common;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace EFCore.ODBC.SQLServer;
 public static class OdbcSqlServerServiceCollectionExtensions
@@ -70,6 +72,8 @@ public static class OdbcSqlServerServiceCollectionExtensions
                             .TryAddScoped<ISqlServerConnection, OdbcRelationalConnection>())
                     .TryAddCoreServices();
 #pragma warning restore EF1001 // Internal EF Core API usage.
+
+        services.Replace(ServiceDescriptor.Singleton<IRelationalCommandBuilderFactory, OdbcRelationalCommandBuilderFactory>());
 
         return services;
     }

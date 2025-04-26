@@ -1,127 +1,272 @@
-using System.Data.Odbc;
-using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
-using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
-using Microsoft.EntityFrameworkCore.SqlServer.Diagnostics.Internal;
-using Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal;
+using System.Data;
+using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.Internal;
-using Microsoft.Extensions.Logging;
-using Xunit;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.TestUtilities;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EFCore.ODBC.SQLServer.Tests;
-#pragma warning disable EF1001 // Internal EF Core API usage.
-public class OdbcRelationalConnectionTests
+
+public class OdbcRelationalConnectionIntegrationTests : IClassFixture<OdbcRelationalConnectionTestsFixture>
 {
-    [Fact]
-    public void CreateDbConnection_ShouldReturnOdbcConnection()
+    private readonly OdbcRelationalConnectionTestsFixture _fixture;
+
+    public OdbcRelationalConnectionIntegrationTests(OdbcRelationalConnectionTestsFixture fixture)
     {
-        var connectionString = "Driver={ODBC Driver 17 for SQL Server};Server=localhost;Database=TestDb;Trusted_Connection=Yes";
+        _fixture = fixture;
+    }
 
-        var options = new DbContextOptionsBuilder()
-            .UseOdbcSqlServer(connectionString)
-            .Options;
-
-        using var connection = new OdbcRelationalConnection(CreateDependencies(options));
+    [Fact]
+    public void CanOpenAndCloseConnection()
+    {
+        using var scope = _fixture.ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OdbcRelationalConnectionTestsFixture.TestDbContext>();
+        var connection = dbContext.Database.GetDbConnection();
 
         Assert.NotNull(connection);
-        Assert.IsType<OdbcRelationalConnection>(connection);
-        Assert.Equal(connectionString, connection.ConnectionString);
+        Assert.Equal(OdbcRelationalConnectionTestsFixture.ConnectionString, connection.ConnectionString);
+
+        connection.Open();
+        Assert.Equal(ConnectionState.Open, connection.State);
+
+        connection.Close();
+        Assert.Equal(ConnectionState.Closed, connection.State);
     }
 
     [Fact]
-    public void CreateMasterConnection_ShouldReturnOdbcConnection()
+    public void CanExecuteQuery()
     {
-        var connectionString = "Driver={ODBC Driver 17 for SQL Server};Server=localhost;Database=TestDb;Trusted_Connection=Yes";
+        using var scope = _fixture.ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OdbcRelationalConnectionTestsFixture.TestDbContext>();
+        var connection = dbContext.Database.GetDbConnection();
 
-        var options = new DbContextOptionsBuilder()
-            .UseOdbcSqlServer(connectionString)
-            .Options;
+        connection.Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT 1";
 
-        using var connection = new OdbcRelationalConnection(CreateDependencies(options));
-        using var masterConnection = connection.CreateMasterConnection();
+        var result = command.ExecuteScalar();
 
-        Assert.NotNull(masterConnection);
-        Assert.IsType<OdbcRelationalConnection>(masterConnection);
-        Assert.IsType<ISqlServerConnection>(masterConnection, false);
-        Assert.Equal(connectionString?.ToLower(), masterConnection.ConnectionString?.ToLower());
-        Assert.Equal(60, masterConnection.CommandTimeout);
+        Assert.NotNull(result);
+        Assert.Equal(1, Convert.ToInt32(result));
+
+        connection.Close();
+        Assert.Equal(ConnectionState.Closed, connection.State);
     }
 
     [Fact]
-    public void CreateMasterConnectionWithTimeout_ShouldReturnOdbcConnectionWithTimeout()
+    public void CanExecuteSimpleSelectQuery()
     {
-        var connectionString = "Driver={ODBC Driver 17 for SQL Server};Server=localhost;Database=TestDb;Trusted_Connection=Yes";
+        using var scope = _fixture.ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OdbcRelationalConnectionTestsFixture.TestDbContext>();
+        var connection = dbContext.Database.GetDbConnection();
 
-        var options = new DbContextOptionsBuilder()
-            .UseOdbcSqlServer(connectionString,
-                b => b.CommandTimeout(55))
-            .Options;
+        connection.Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT 42";
 
-        using var connection = new OdbcRelationalConnection(CreateDependencies(options));
-        using var masterConnection = connection.CreateMasterConnection();
+        var result = command.ExecuteScalar();
 
-        Assert.NotNull(masterConnection);
-        Assert.IsType<OdbcRelationalConnection>(masterConnection);
-        Assert.Equal(connectionString?.ToLower(), masterConnection.ConnectionString?.ToLower());
-        Assert.Equal(55, masterConnection.CommandTimeout);
+        Assert.NotNull(result);
+        Assert.Equal(42, Convert.ToInt32(result));
+
+        connection.Close();
+        Assert.Equal(ConnectionState.Closed, connection.State);
     }
 
-    public static RelationalConnectionDependencies CreateDependencies(DbContextOptions options = null)
+    [Fact]
+    public void CanExecuteNotNamedParameterizedQuery()
     {
-        options ??= new DbContextOptionsBuilder()
-            .UseOdbcSqlServer(@"Driver={ODBC Driver 17 for SQL Server};Server=localhost;Database=TestDb;Trusted_Connection=Yes;")
-            .Options;
+        using var scope = _fixture.ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OdbcRelationalConnectionTestsFixture.TestDbContext>();
+        var connection = dbContext.Database.GetDbConnection();
 
-        return new RelationalConnectionDependencies(
-            options,
-            new DiagnosticsLogger<DbLoggerCategory.Database.Transaction>(
-                new LoggerFactory(),
-                new LoggingOptions(),
-                new DiagnosticListener("FakeDiagnosticListener"),
-                new SqlServerLoggingDefinitions(),
-                new NullDbContextLogger()),
-            new RelationalConnectionDiagnosticsLogger(
-                new LoggerFactory(),
-                new LoggingOptions(),
-                new DiagnosticListener("FakeDiagnosticListener"),
-                new SqlServerLoggingDefinitions(),
-                new NullDbContextLogger(),
-                CreateOptions()),
-            new NamedConnectionStringResolver(options),
-            new RelationalTransactionFactory(
-                new RelationalTransactionFactoryDependencies(
-                    new RelationalSqlGenerationHelper(
-                        new RelationalSqlGenerationHelperDependencies()))),
-            new CurrentDbContext(new FakeDbContext()),
-            new RelationalCommandBuilderFactory(
-                new RelationalCommandBuilderDependencies(
-                    new TestRelationalTypeMappingSource(
-                        TestServiceFactory.Instance.Create<TypeMappingSourceDependencies>(),
-                        TestServiceFactory.Instance.Create<RelationalTypeMappingSourceDependencies>()),
-                    new SqlServerExceptionDetector())));
+        connection.Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT ?";
+
+        var parameter = command.CreateParameter();
+        parameter.Value = 100;
+        command.Parameters.Add(parameter);
+
+        var result = command.ExecuteScalar();
+
+        Assert.NotNull(result);
+        Assert.Equal(100, Convert.ToInt32(result));
+
+        connection.Close();
+        Assert.Equal(ConnectionState.Closed, connection.State);
     }
 
-    private const string ConnectionString = "Fake Connection String";
-
-    private static IDbContextOptions CreateOptions(
-        RelationalOptionsExtension? optionsExtension = null)
+    [Fact]
+    public void CanExecuteNamedParameterizedQuery()
     {
-        var optionsBuilder = new DbContextOptionsBuilder();
+        // Won't work, tests using linq queries are more important!
+        using var scope = _fixture.ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OdbcRelationalConnectionTestsFixture.TestDbContext>();
+        var connection = dbContext.Database.GetDbConnection();
 
-        ((IDbContextOptionsBuilderInfrastructure)optionsBuilder)
-            .AddOrUpdateExtension(
-                optionsExtension
-                ?? new FakeRelationalOptionsExtension().WithConnectionString(ConnectionString));
+        connection.Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT @value1, @value2, @value3";
+        var parameter1 = command.CreateParameter();
+        parameter1.ParameterName = "@value1";
+        parameter1.Value = 100;
+        command.Parameters.Add(parameter1);
 
-        return optionsBuilder.Options;
+        var parameter2 = command.CreateParameter();
+        parameter2.ParameterName = "@value2";
+        parameter2.Value = 200;
+        command.Parameters.Add(parameter2);
+
+        var parameter3 = command.CreateParameter();
+        parameter3.ParameterName = "@value3";
+        parameter3.Value = 300;
+        command.Parameters.Add(parameter3);
+
+        var result = command.ExecuteScalar();
+
+        Assert.NotNull(result);
+        Assert.Equal(100, Convert.ToInt32(result));
+
+        connection.Close();
+        Assert.Equal(ConnectionState.Closed, connection.State);
     }
 
-    private class FakeDbContext : DbContext
+    [Fact]
+    public void CanExecuteNamedParameterizedLinqQuery()
     {
+        using var scope = _fixture.ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OdbcRelationalConnectionTestsFixture.TestDbContext>();
+        var id = 1;
+
+        // Perform a simple LINQ query  
+        var result = dbContext.Users
+            .Where(u => u.Id == id)
+            .FirstOrDefault();
+
+        Assert.NotNull(result);
+        Assert.Equal("tester1", result.Name);
     }
+
+    [Fact]
+    public void CanExecuteNamedParameterizedLinqQueryComplex()
+    {
+        using var scope = _fixture.ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OdbcRelationalConnectionTestsFixture.TestDbContext>();
+        var id = 1;
+        var name = "tester1";
+
+        // Perform a simple LINQ query  
+        var result = dbContext.Users
+            .Where(u => u.Id == id && u.Name == name)
+            .FirstOrDefault();
+
+        Assert.NotNull(result);
+        Assert.Equal("tester1", result.Name);
+    }
+
+    [Fact]
+    public void CanExecuteNamedParameterizedAndLimitedLinqQueryComplex()
+    {
+        using var scope = _fixture.ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OdbcRelationalConnectionTestsFixture.TestDbContext>();
+        var name = "tester";
+        var count = 3;
+
+        // Perform a simple LINQ query  
+        var result = dbContext.Users
+            .Where(u => u.Name.StartsWith(name))
+            .Take(count);
+
+        Assert.NotNull(result);
+        Assert.Equal(2, result.Count());
+        Assert.Equal("tester1", result.FirstOrDefault()?.Name);
+    }
+
+    [Fact]
+    public void CanExecuteLinqQuery()
+    {
+        using var scope = _fixture.ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OdbcRelationalConnectionTestsFixture.TestDbContext>();
+
+        // Perform a simple LINQ query  
+        var result = dbContext.Users
+            .Where(u => u.Id == 1)
+            .FirstOrDefault();
+
+        Assert.NotNull(result);
+        Assert.Equal("tester1", result.Name);
+    }
+
+    [Fact]
+    public void CanExecuteQueryReturningMultipleRows()
+    {
+        using var scope = _fixture.ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OdbcRelationalConnectionTestsFixture.TestDbContext>();
+        var connection = dbContext.Database.GetDbConnection();
+
+        connection.Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT 1 UNION SELECT 2 UNION SELECT 3";
+
+        using var reader = command.ExecuteReader();
+        var results = new List<int>();
+
+        while (reader.Read())
+        {
+            results.Add(reader.GetInt32(0));
+        }
+
+        Assert.Equal(new[] { 1, 2, 3 }, results);
+
+        connection.Close();
+        Assert.Equal(ConnectionState.Closed, connection.State);
+    }
+
+    [Fact]
+    public void CanExecuteQueryWithJoin()
+    {
+        using var scope = _fixture.ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OdbcRelationalConnectionTestsFixture.TestDbContext>();
+        var connection = dbContext.Database.GetDbConnection();
+
+        connection.Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+           WITH Data1 AS (SELECT 1 AS Id, 'A' AS Value),
+                Data2 AS (SELECT 1 AS Id, 'B' AS Value)
+           SELECT d1.Value, d2.Value
+           FROM Data1 d1
+           INNER JOIN Data2 d2 ON d1.Id = d2.Id";
+
+        using var reader = command.ExecuteReader();
+        Assert.True(reader.Read());
+        Assert.Equal("A", reader.GetString(0));
+        Assert.Equal("B", reader.GetString(1));
+
+        connection.Close();
+        Assert.Equal(ConnectionState.Closed, connection.State);
+    }
+
+    [Fact]
+    public void CanExecuteQueryWithAggregateFunction()
+    {
+        using var scope = _fixture.ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OdbcRelationalConnectionTestsFixture.TestDbContext>();
+        var connection = dbContext.Database.GetDbConnection();
+
+        connection.Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT SUM(Value) FROM (VALUES (10), (20), (30)) AS Data(Value)";
+
+        var result = command.ExecuteScalar();
+
+        Assert.NotNull(result);
+        Assert.Equal(60, Convert.ToInt32(result));
+
+        connection.Close();
+        Assert.Equal(ConnectionState.Closed, connection.State);
+    }
+
 }
-#pragma warning restore EF1001 // Internal EF Core API usage.
