@@ -200,6 +200,72 @@ public class OdbcRelationalConnectionIntegrationTests : IClassFixture<OdbcRelati
     }
 
     [Fact]
+    public void CanExecuteNamedParameterizedLinqQuerySQL()
+    {
+        using var scope = _fixture.ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OdbcRelationalConnectionTestsFixture.TestDbContext>();
+        var id = 1;
+
+        // Perform a simple LINQ query  
+        var result = (from u in dbContext.Users
+                      where u.Id == id
+                      select u).FirstOrDefault();
+
+        Assert.NotNull(result);
+        Assert.Equal("tester1", result.Name);
+    }
+
+    [Fact]
+    public void CanExecuteNamedParameterizedLinqQueryComplexSQL()
+    {
+        using var scope = _fixture.ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OdbcRelationalConnectionTestsFixture.TestDbContext>();
+        var id = 1;
+        var name = "tester1";
+
+        // Perform a simple LINQ query  
+        var result = (from u in dbContext.Users
+                      where u.Id == id && u.Name == name
+                      select u).FirstOrDefault();
+
+        Assert.NotNull(result);
+        Assert.Equal("tester1", result.Name);
+    }
+
+    [Fact]
+    public void CanExecuteNamedParameterizedAndLimitedLinqQueryComplexSQL()
+    {
+        using var scope = _fixture.ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OdbcRelationalConnectionTestsFixture.TestDbContext>();
+        var name = "tester";
+        var count = 3;
+
+        // Perform a simple LINQ query  
+        var result = (from u in dbContext.Users
+                      where u.Name.StartsWith(name)
+                      select u).Take(count);
+
+        Assert.NotNull(result);
+        Assert.Equal(2, result.Count());
+        Assert.Equal("tester1", result.FirstOrDefault()?.Name);
+    }
+
+    [Fact]
+    public void CanExecuteLinqQuerySQL()
+    {
+        using var scope = _fixture.ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OdbcRelationalConnectionTestsFixture.TestDbContext>();
+
+        // Perform a simple LINQ query  
+        var result = (from u in dbContext.Users
+                      where u.Id == 1
+                      select u).FirstOrDefault();
+
+        Assert.NotNull(result);
+        Assert.Equal("tester1", result.Name);
+    }
+
+    [Fact]
     public void CanExecuteQueryReturningMultipleRows()
     {
         using var scope = _fixture.ServiceProvider.CreateScope();
