@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EFCore.ODBC.SQLServer;
-public class OdbcRelationalConnection : RelationalConnection, ISqlServerConnection
+public class OdbcSqlServerRelationalConnection : RelationalConnection, ISqlServerConnection
 {
     private const int DefaultMasterConnectionCommandTimeout = 60;
 
-    public OdbcRelationalConnection(RelationalConnectionDependencies dependencies)
+    public OdbcSqlServerRelationalConnection(RelationalConnectionDependencies dependencies)
         : base(dependencies) { }
 
     protected override DbConnection CreateDbConnection()
@@ -28,7 +28,7 @@ public class OdbcRelationalConnection : RelationalConnection, ISqlServerConnecti
                 b => b.CommandTimeout(CommandTimeout ?? DefaultMasterConnectionCommandTimeout))
             .Options;
 
-        return new OdbcRelationalConnection(Dependencies with { ContextOptions = contextOptions });
+        return new OdbcSqlServerRelationalConnection(Dependencies with { ContextOptions = contextOptions });
     }
 
     public virtual bool IsMultipleActiveResultSetsEnabled

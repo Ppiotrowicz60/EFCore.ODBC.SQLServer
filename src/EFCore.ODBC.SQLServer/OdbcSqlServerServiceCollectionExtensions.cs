@@ -69,11 +69,11 @@ public static class OdbcSqlServerServiceCollectionExtensions
                             .TryAddSingleton<ISqlServerValueGeneratorCache, SqlServerValueGeneratorCache>()
                             .TryAddSingleton<ISqlServerUpdateSqlGenerator, SqlServerUpdateSqlGenerator>()
                             .TryAddSingleton<ISqlServerSequenceValueGeneratorFactory, SqlServerSequenceValueGeneratorFactory>()
-                            .TryAddScoped<ISqlServerConnection, OdbcRelationalConnection>())
+                            .TryAddScoped<ISqlServerConnection, OdbcSqlServerRelationalConnection>())
                     .TryAddCoreServices();
 #pragma warning restore EF1001 // Internal EF Core API usage.
 
-        services.Replace(ServiceDescriptor.Singleton<IRelationalCommandBuilderFactory, OdbcRelationalCommandBuilderFactory>());
+        services.Replace(ServiceDescriptor.Singleton<IRelationalCommandBuilderFactory, OdbcSqlServerRelationalCommandBuilderFactory>());
 
         return services;
     }

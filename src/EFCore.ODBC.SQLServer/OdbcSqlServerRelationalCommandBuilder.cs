@@ -2,9 +2,9 @@
 
 namespace EFCore.ODBC.SQLServer;
 
-public class OdbcRelationalCommandBuilder : RelationalCommandBuilder
+public class OdbcSqlServerRelationalCommandBuilder : RelationalCommandBuilder
 {
-    public OdbcRelationalCommandBuilder(RelationalCommandBuilderDependencies dependencies)
+    public OdbcSqlServerRelationalCommandBuilder(RelationalCommandBuilderDependencies dependencies)
         : base(dependencies)
     {
         Dependencies = dependencies;
