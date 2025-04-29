@@ -331,4 +331,65 @@ public class OdbcRelationalConnectionIntegrationTests : IClassFixture<OdbcRelati
         Assert.Equal(ConnectionState.Closed, connection.State);
     }
 
+    [Fact]
+    public void ArrayContainsMethodTest()
+    {
+        using var scope = _fixture.ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OdbcRelationalConnectionTestsFixture.TestDbContext>();
+        var names = new[] { "tester1" };
+
+        var count = 3;
+
+        // Perform a simple LINQ query  
+        var result = (from u in dbContext.Users
+                      where names.Contains(u.Name)
+                      select u).Take(count);
+
+        Assert.NotNull(result);
+        Assert.Equal(1, result.Count());
+        Assert.Equal("tester1", result.FirstOrDefault()?.Name);
+    }
+
+    [Fact]
+    public void ListContainsMethodTest()
+    {
+        using var scope = _fixture.ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OdbcRelationalConnectionTestsFixture.TestDbContext>();
+        List<string> names = ["tester1"];
+
+        var count = 3;
+
+        // Perform a simple LINQ query  
+        var result = (from u in dbContext.Users
+                      where !names.Contains(u.Name)
+                      select u).Take(count);
+
+        Assert.NotNull(result);
+        Assert.Equal(1, result.Count());
+        Assert.Equal("tester2", result.FirstOrDefault()?.Name);
+    }
+
+    [Fact]
+    public async Task ListContainsManyMethodTest()
+    {
+        using var scope = _fixture.ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OdbcRelationalConnectionTestsFixture.TestDbContext>();
+        List<string> names = ["tester1", "tester2"];
+
+        var count = 3;
+
+        // Perform a simple LINQ query  
+        var result = (from u in dbContext.Users
+                      where names.Contains(u.Name)
+                      select u)
+                      .OrderBy(u=>u.Id)
+                      .Select(u => new { u.Id, u.Name })
+                      .Take(count);
+
+        var test = await result.ToListAsync();
+
+        Assert.NotNull(result);
+        Assert.Equal(2, result.Count());
+        Assert.Equal("tester1", result.FirstOrDefault()?.Name);
+    }
 }

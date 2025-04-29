@@ -13,9 +13,7 @@ public class OdbcRelationalConnectionTestsFixture : IDisposable
         var services = new ServiceCollection();
 
         services
-            .AddDbContext<TestDbContext>(options => options.UseOdbcSqlServer(ConnectionString))
-            .AddEntityFrameworkSqlServer()
-            .AddEntityFrameworkOdbcSqlServer();
+            .AddDbContext<TestDbContext>(options => options.UseOdbcSqlServer(ConnectionString));
 
         ServiceProvider = services.BuildServiceProvider();
     }
