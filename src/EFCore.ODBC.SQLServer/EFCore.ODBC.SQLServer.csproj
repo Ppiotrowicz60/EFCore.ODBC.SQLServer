@@ -12,6 +12,7 @@
 		<Description>Custom EF Core provider for SQL Server via ODBC.</Description>
 		<PackageTags>EntityFramework EFCore SQLServer ODBC</PackageTags>
 		<RepositoryUrl>https://github.com/Ppiotrowicz60/EFCore.ODBC.SQLServer</RepositoryUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	</PropertyGroup>
 
 	<ItemGroup>
