@@ -78,9 +78,19 @@ public class LocalServiceTests
     }
 
     [Test]
-    public async Task GetEntitiesByStringValuesAsync_ReturnsEntities_WhenStringValuesMatch()
+    public async Task GetEntitiesByNotContainsStringValuesAsync_ReturnsEntities_WhenStringValuesMatch()
     {
         var stringValues = new List<string> { "Entity1", "Entity2" };
+        var result = await LocalTestService.GetEntitiesByNotContainsStringValuesAsync(stringValues);
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Count, Is.GreaterThan(0));
+        Assert.That(!result.All(e => stringValues.Contains(e.StringValue)));
+    }
+
+    [TestCase]
+    public async Task GetEntitiesByStringValuesAsync_ReturnsEntities_WhenStringValuesMatch()
+    {
+        var stringValues = Enumerable.Range(0, 100).Select(i => $"Entity{i}").ToList();
         var result = await LocalTestService.GetEntitiesByStringValuesAsync(stringValues);
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Count, Is.GreaterThan(0));

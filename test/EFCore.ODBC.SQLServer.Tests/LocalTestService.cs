@@ -55,6 +55,13 @@ public class LocalTestService
             .ToListAsync();
     }
 
+    public async Task<List<ComplexEntity>> GetEntitiesByNotContainsStringValuesAsync(List<string> stringValues)
+    {
+        return await _context.ComplexEntities
+            .Where(x => x.StringValue==null||(x.IntValue==30&& !stringValues.Contains(x.StringValue)))
+            .ToListAsync();
+    }
+
     public async Task<List<ComplexEntity>> GetEntitiesByStringValuesAsync(List<string> stringValues)
     {
         return await _context.ComplexEntities
