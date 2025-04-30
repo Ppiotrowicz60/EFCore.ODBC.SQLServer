@@ -62,10 +62,10 @@ public class LocalServiceTests
     [Test]
     public async Task GetEntitiesWithUnionAndFilterAsync_ReturnsFilteredEntities_WhenIdsAndFilterMatch()
     {
-        var result = await LocalTestService.GetEntitiesWithUnionAndFilterAsync(1, 2, "testValue");
+        var result = await LocalTestService.GetEntitiesWithUnionAndFilterAsync(1, 2, "Entity2");
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Count, Is.GreaterThan(0));
-        Assert.That(result.All(e => e.StringValue == "testValue"));
+        Assert.That(result.All(e => e.StringValue == "Entity2"));
     }
 
     [Test]
@@ -80,11 +80,21 @@ public class LocalServiceTests
     [Test]
     public async Task GetEntitiesByStringValuesAsync_ReturnsEntities_WhenStringValuesMatch()
     {
-        var stringValues = new List<string> { "value1", "value2" };
+        var stringValues = new List<string> { "Entity1", "Entity2" };
         var result = await LocalTestService.GetEntitiesByStringValuesAsync(stringValues);
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Count, Is.GreaterThan(0));
         Assert.That(result.All(e => stringValues.Contains(e.StringValue)));
+    }
+
+    [TestCase("Entity1", "Description 1", 2023,5,1) ]
+    public async Task GetComplexAndRelatedEntitiesData_ReturnsEntity_WhenStringValueExists(string stringValue,string description, int year, int month, int day)
+    {
+        var dateTimeValue = new DateTime(year, month, day);
+        var result = await LocalTestService.GetComplexAndRelatedEntitiesData(stringValue, dateTimeValue, description);
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.StringValue, Is.EqualTo(stringValue));
+        Assert.That(result.DateTimeValue, Is.LessThanOrEqualTo(dateTimeValue));
     }
 
 }

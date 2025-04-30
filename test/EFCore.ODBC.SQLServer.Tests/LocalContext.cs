@@ -5,6 +5,8 @@ namespace EFCore.ODBC.SQLServer.Tests;
 public class LocalContext : DbContext
 {
     public DbSet<ComplexEntity> ComplexEntities { get; set; }
+    public DbSet<ChildEntity> ChildEntities { get; set; }
+    public DbSet<RelatedEntity> RelatedEntities { get; set; }
 
     public LocalContext(DbContextOptions<LocalContext> options)
         : base(options)
@@ -19,6 +21,7 @@ public class LocalContext : DbContext
     {
         modelBuilder.Entity<ComplexEntity>(entity =>
         {
+            entity.ToTable("ComplexEntity");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.StringValue).IsRequired();
             entity.Property(e => e.IntValue);
@@ -31,8 +34,17 @@ public class LocalContext : DbContext
 
         modelBuilder.Entity<ChildEntity>(entity =>
         {
+            entity.ToTable("ChildEntity");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired();
+        });
+
+        modelBuilder.Entity<RelatedEntity>(entity =>
+        {
+            entity.ToTable("RelatedEntity");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.SharedIntValue);
+            entity.Property(e => e.Description).IsRequired();
         });
 
         OnModelCreatingPartial(modelBuilder);
@@ -60,4 +72,11 @@ public class ChildEntity
     public int Id { get; set; }
     public string Name { get; set; }
     public int ParentId { get; set; }
+}
+
+public class RelatedEntity
+{
+    public int Id { get; set; }
+    public int SharedIntValue { get; set; }
+    public string Description { get; set; }
 }

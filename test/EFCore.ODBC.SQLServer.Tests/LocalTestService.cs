@@ -61,4 +61,15 @@ public class LocalTestService
             .Where(x => stringValues.Contains(x.StringValue))
             .ToListAsync();
     }
+
+    public async Task<ComplexEntity?> GetComplexAndRelatedEntitiesData(string stringValue, DateTime dateTimeValue, string description)
+    {
+        var query = from c in _context.ComplexEntities
+                    join r in _context.RelatedEntities on c.Id equals r.SharedIntValue
+                    where c.StringValue == stringValue
+                     && c.DateTimeValue <= dateTimeValue
+                     && r.Description == description
+                    select c;
+        return await query.FirstOrDefaultAsync();
+    }
 }
