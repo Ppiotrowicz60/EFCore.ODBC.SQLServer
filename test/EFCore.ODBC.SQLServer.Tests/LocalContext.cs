@@ -26,7 +26,7 @@ public class LocalContext : DbContext
             entity.Property(e => e.StringValue).IsRequired();
             entity.Property(e => e.IntValue);
             entity.Property(e => e.DecimalValue).HasColumnType("decimal(18,2)");
-            entity.Property(e => e.DateTimeValue);
+            entity.Property(e => e.DateTimeValue).HasColumnType("smalldatetime");
             entity.Property(e => e.BoolValue);
             entity.Property(e => e.GuidValue);
             entity.HasMany(e => e.Children).WithOne().HasForeignKey(c => c.ParentId);

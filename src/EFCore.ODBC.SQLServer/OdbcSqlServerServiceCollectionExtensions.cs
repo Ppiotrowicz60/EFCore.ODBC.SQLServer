@@ -74,6 +74,7 @@ public static class OdbcSqlServerServiceCollectionExtensions
 #pragma warning restore EF1001 // Internal EF Core API usage.
 
         services.Replace(ServiceDescriptor.Singleton<IRelationalCommandBuilderFactory, OdbcSqlServerRelationalCommandBuilderFactory>());
+        services.Replace(ServiceDescriptor.Singleton<IRelationalTypeMappingSource, OdbcSqlServerTypeMappingSource>());
 
         return services;
     }

@@ -65,7 +65,7 @@ public class LocalTestService
     public async Task<ComplexEntity?> GetComplexAndRelatedEntitiesData(string stringValue, DateTime dateTimeValue, string description)
     {
         var query = from c in _context.ComplexEntities
-                    join r in _context.RelatedEntities on c.Id equals r.SharedIntValue
+                    join r in _context.RelatedEntities on c.IntValue equals r.SharedIntValue
                     where c.StringValue == stringValue
                      && c.DateTimeValue <= dateTimeValue
                      && r.Description == description
