@@ -14,3 +14,8 @@ Useful for cloud environments, DSN-only infrastructure, or platform-specific dri
 
 ```bash
 dotnet add package EFCore.ODBC.SqlServer
+```
+
+## Notes
+OPENJSON is not handled well via odbc, so in some cases it might be causing specific queries to fail.
+Recommended solution is to change compatibility level to 120 to prevent EF Core from using OPENJSON.
