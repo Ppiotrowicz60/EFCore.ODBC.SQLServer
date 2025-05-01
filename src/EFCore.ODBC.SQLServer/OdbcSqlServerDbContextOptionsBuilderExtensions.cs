@@ -8,7 +8,7 @@ public static class OdbcSqlServerDbContextOptionsBuilderExtensions
     public static DbContextOptionsBuilder UseOdbcSqlServer(
         this DbContextOptionsBuilder optionsBuilder,
         string odbcConnectionString,
-        Action<SqlServerDbContextOptionsBuilder>? sqlServerOptionsAction = null)
+        Action<OdbcSqlServerDbContextOptionsBuilder>? sqlServerOptionsAction = null)
     {
         var extension = (OdbcSqlServerOptionsExtension)GetOrCreateExtension(optionsBuilder).WithConnectionString(odbcConnectionString);
         ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(extension);
@@ -21,9 +21,9 @@ public static class OdbcSqlServerDbContextOptionsBuilderExtensions
 
     private static DbContextOptionsBuilder ApplyConfiguration(
         DbContextOptionsBuilder optionsBuilder,
-        Action<SqlServerDbContextOptionsBuilder>? sqlServerOptionsAction)
+        Action<OdbcSqlServerDbContextOptionsBuilder>? sqlServerOptionsAction)
     {
-        sqlServerOptionsAction?.Invoke(new SqlServerDbContextOptionsBuilder(optionsBuilder));
+        sqlServerOptionsAction?.Invoke(new OdbcSqlServerDbContextOptionsBuilder(optionsBuilder));
 
         var extension = (OdbcSqlServerOptionsExtension)GetOrCreateExtension(optionsBuilder).ApplyDefaults(optionsBuilder.Options);
         ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(extension);

@@ -29,7 +29,10 @@ public class LocalServiceTests
         var connectionString = "dsn=testOdbcSqlServer;uid=sa;pwd=YourStrong!Passw0rd;";
 
         var builder = new DbContextOptionsBuilder<LocalContext>();
-        builder.UseOdbcSqlServer(connectionString);
+        builder.UseOdbcSqlServer(connectionString, options =>
+        {
+            options.UseCompatibilityLevel(120);
+        });
 
         LocalTestService = new LocalTestService(new LocalContext(builder.Options));
     }
