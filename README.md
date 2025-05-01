@@ -19,3 +19,5 @@ dotnet add package EFCore.ODBC.SqlServer
 ## Notes
 OPENJSON is not handled well via odbc, so in some cases it might be causing specific queries to fail.
 Recommended solution is to change compatibility level to 120 to prevent EF Core from using OPENJSON.
+
+Join in method syntax might cause issues, to mitigate it simplest solution is to use query syntax.
