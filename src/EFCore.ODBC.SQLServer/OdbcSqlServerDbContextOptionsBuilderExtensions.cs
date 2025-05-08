@@ -1,6 +1,7 @@
-﻿using EFCore.ODBC.SqlServer;
-using Microsoft.EntityFrameworkCore.Infrastructure;
+﻿using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal;
 
 namespace EFCore.ODBC.SQLServer;
 public static class OdbcSqlServerDbContextOptionsBuilderExtensions
@@ -8,25 +9,14 @@ public static class OdbcSqlServerDbContextOptionsBuilderExtensions
     public static DbContextOptionsBuilder UseOdbcSqlServer(
         this DbContextOptionsBuilder optionsBuilder,
         string odbcConnectionString,
-        Action<OdbcSqlServerDbContextOptionsBuilder>? sqlServerOptionsAction = null)
+        Action<SqlServerDbContextOptionsBuilder>? sqlServerOptionsAction = null)
     {
-        var extension = (OdbcSqlServerOptionsExtension)GetOrCreateExtension(optionsBuilder).WithConnectionString(odbcConnectionString);
-        ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(extension);
-        return ApplyConfiguration(optionsBuilder, sqlServerOptionsAction);
-    }
-
-    private static OdbcSqlServerOptionsExtension GetOrCreateExtension(DbContextOptionsBuilder optionsBuilder)
-    => optionsBuilder.Options.FindExtension<OdbcSqlServerOptionsExtension>()
-        ?? new OdbcSqlServerOptionsExtension();
-
-    private static DbContextOptionsBuilder ApplyConfiguration(
-        DbContextOptionsBuilder optionsBuilder,
-        Action<OdbcSqlServerDbContextOptionsBuilder>? sqlServerOptionsAction)
-    {
-        sqlServerOptionsAction?.Invoke(new OdbcSqlServerDbContextOptionsBuilder(optionsBuilder));
-
-        var extension = (OdbcSqlServerOptionsExtension)GetOrCreateExtension(optionsBuilder).ApplyDefaults(optionsBuilder.Options);
-        ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(extension);
+#pragma warning disable EF1001 // Internal EF Core API usage.
+        optionsBuilder.UseSqlServer(odbcConnectionString, sqlServerOptionsAction)
+            .ReplaceService<ISqlServerConnection, OdbcSqlServerRelationalConnection>()
+            .ReplaceService<IRelationalCommandBuilderFactory, OdbcSqlServerRelationalCommandBuilderFactory>()
+            .ReplaceService<IRelationalTypeMappingSource, OdbcSqlServerTypeMappingSource>();
+#pragma warning restore EF1001 // Internal EF Core API usage.
 
         return optionsBuilder;
     }
