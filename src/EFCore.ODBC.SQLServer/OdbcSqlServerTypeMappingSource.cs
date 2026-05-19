@@ -1,4 +1,5 @@
 using System.Data;
+using Microsoft.EntityFrameworkCore.SqlServer.Infrastructure.Internal;
 using Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 #pragma warning disable EF1001 // Internal EF Core API usage.
@@ -7,8 +8,9 @@ public class OdbcSqlServerTypeMappingSource : SqlServerTypeMappingSource
 {
     public OdbcSqlServerTypeMappingSource(
         TypeMappingSourceDependencies dependencies,
-        RelationalTypeMappingSourceDependencies relationalDependencies)
-        : base(dependencies, relationalDependencies)
+        RelationalTypeMappingSourceDependencies relationalDependencies,
+        ISqlServerSingletonOptions sqlServerSingletonOptions)
+        : base(dependencies, relationalDependencies, sqlServerSingletonOptions)
     {
     }
 

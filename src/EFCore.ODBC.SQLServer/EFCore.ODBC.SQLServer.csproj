@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageId>EFCore.ODBC.SqlServer</PackageId>
-		<Version>1.0.1</Version>
+		<Version>10.0.0</Version>
 		<Authors>Patryk Piotrowicz</Authors>
-		<Company>Albeqify</Company>
+		<Company>ByteRift</Company>
 		<Description>Custom EF Core provider for SQL Server via ODBC.</Description>
 		<PackageTags>EntityFramework EFCore SQLServer ODBC</PackageTags>
 		<RepositoryUrl>https://github.com/Ppiotrowicz60/EFCore.ODBC.SQLServer</RepositoryUrl>
@@ -16,10 +16,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.15" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.15" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.15" />
-		<PackageReference Include="System.Data.Odbc" Version="8.0.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.8" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.8" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.8" />
+		<PackageReference Include="System.Data.Odbc" Version="10.0.8" />
 	</ItemGroup>
 
 </Project>

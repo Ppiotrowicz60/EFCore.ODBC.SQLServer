@@ -37,6 +37,7 @@ public class OdbcSqlServerRelationalCommandBuilder : RelationalCommandBuilder
         return new RelationalCommand(
             Dependencies,
             sql,
+            Guid.NewGuid().ToString(),
             orderedParams
         );
     }
